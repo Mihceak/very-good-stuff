@@ -23,11 +23,13 @@ def main() -> None:
             engine.GOOD_MORNING: [MessageHandler(~filters.COMMAND & filters.TEXT, engine.greetings)],
             engine.NOVEL: [MessageHandler(filters.Regex("^(Давай!)$"), engine.novel)],
             engine.CONTINUE: [CallbackQueryHandler(engine.game_buttons)],
-            engine.INFO: [MessageHandler(filters.Regex("^(Інфо|Инфо)$"), engine.info)],
-            engine.INFO_BUTTONS: [CallbackQueryHandler(engine.info_buttons)]
+            engine.INFO_BUTTONS: [CallbackQueryHandler(engine.info_buttons)],
+            engine.SAVE_FEEDBACK: [MessageHandler(filters.TEXT, engine.save_feedback)],
+            engine.FEEDBACK_BUTTON: [CallbackQueryHandler(engine.feedback_button)]
         },
         fallbacks=[MessageHandler(filters.Regex("^(Інфо|Инфо)$"), engine.info),
-                   MessageHandler(~filters.Regex("^(Інфо|Инфо)$"), engine.error)]
+                   MessageHandler(filters.Regex("^(Залишити відгук|Оставить отзыв)$"), engine.feedback),
+                   MessageHandler(filters.TEXT, engine.error)]
     )
 
     application.add_handler(conv_handler)

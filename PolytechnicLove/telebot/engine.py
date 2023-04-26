@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-NAME_ENTERING, HANDLING_NAME, CONSTRUCTION, GOOD_MORNING, CONTINUE, NOVEL, INFO, INFO_BUTTONS = range(8)
+NAME_ENTERING, HANDLING_NAME, CONSTRUCTION, GOOD_MORNING, CONTINUE, NOVEL, INFO_BUTTONS, GLOSSARY_BUTTONS, SAVE_FEEDBACK, FEEDBACK_BUTTON = range(10)
 
 bot = Bot(bot_token)
 global player
@@ -108,10 +108,6 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
         hoax_message = await bot.send_message(chat_id=player.get_id(), text='🕓',
                                               reply_markup=ReplyKeyboardMarkup(menu,
                                                                                resize_keyboard=True))
-        # await bot.deleteMessage(chat_id=player.get_id(), message_id=hoax_message.message_id)
-    if update.message is not None and update.message.text == 'Инфо':
-        print("By, novel")
-        return INFO
     args = {'is_text': True,
             'is_photo': False,
             'is_voice': False,
@@ -211,6 +207,10 @@ async def send_anything(args) -> Message:
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="_") -> int:
     """Info menu"""
     try:
+        await set_player(update.message.chat_id)
+    except(AttributeError):
+        None
+    try:
         await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
     except(BadRequest):
         None
@@ -256,6 +256,58 @@ async def info_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
         return await info(update, context, "Vika")
     elif query.data == "8":
-        await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id-1)
+        await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id - 1)
         await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
         return await info(update, context, "_")
+
+
+async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Handles about menu choice"""
+    await set_player(update.message.chat_id)
+    try:
+        await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
+    except(BadRequest):
+        None
+    args = {'is_text': True,
+            'is_photo': False,
+            'is_voice': False,
+            'is_sticker': False,
+            'text': script.bot_messages[lang][-10],
+            'markup': None
+            }
+
+    last_message[player.get_id()] = await send_anything(args)
+    return SAVE_FEEDBACK
+
+
+async def glossary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    return GLOSSARY_BUTTONS
+
+
+async def glossary_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    return await novel(update, context)
+
+
+async def save_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Handles the feedback menu choice"""
+    await set_player(update.message.chat_id)
+    player.leave_feedback(update.message.text)
+    print("898")
+    args = {'is_text': True,
+            'is_photo': False,
+            'is_voice': False,
+            'is_sticker': False,
+            'text': script.bot_messages[lang][-11],
+            'markup': InlineKeyboardMarkup([[InlineKeyboardButton(script.user_replies[lang][7], callback_data="_")]])
+            }
+    last_message[player.get_id()] = await send_anything(args)
+    return FEEDBACK_BUTTON
+
+
+async def feedback_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Handles info menu choice"""
+    query = update.callback_query
+    await query.answer()
+    await set_player(query.message.chat_id)
+    return await novel(update, context)
+

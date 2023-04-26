@@ -76,5 +76,11 @@ class Player:
             self.create()
             return
 
+    def leave_feedback(self, feedback):
+        player = match({'player_id': self.get_id()})
+        database.player_table.update(database.player_table.first(formula=player)['id'], {
+            'feedback': feedback
+        })
+
 
 players = {}
