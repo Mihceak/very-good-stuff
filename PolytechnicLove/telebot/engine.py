@@ -164,7 +164,10 @@ async def game_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await set_player(update.message.chat_id)
-    await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
+    try:
+        await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
+    except:
+        None
     await bot.send_sticker(chat_id=player.get_id(),
                            sticker=links.link_begin + links.error)
     await bot.send_message(chat_id=player.get_id(),
@@ -263,7 +266,10 @@ async def info_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handles about menu choice"""
-    await set_player(update.message.chat_id)
+    try:
+        await set_player(update.message.chat_id)
+    except(AttributeError):
+        None
     try:
         await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
     except(BadRequest):
@@ -281,10 +287,30 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def glossary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    try:
+        await set_player(update.message.chat_id)
+    except(AttributeError):
+        None
+    try:
+        await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
+    except(BadRequest):
+        None
+    back_to_game = [[InlineKeyboardButton(script.user_replies[lang][7], callback_data="7")]]
+    args = {'is_text': True,
+            'is_photo': False,
+            'is_voice': False,
+            'is_sticker': False,
+            'text': script.glossary[lang],
+            'markup': InlineKeyboardMarkup(back_to_game)
+            }
+    last_message[player.get_id()] = await send_anything(args)
     return GLOSSARY_BUTTONS
 
 
 async def glossary_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    await set_player(query.message.chat_id)
     return await novel(update, context)
 
 
@@ -292,7 +318,6 @@ async def save_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     """Handles the feedback menu choice"""
     await set_player(update.message.chat_id)
     player.leave_feedback(update.message.text)
-    print("898")
     args = {'is_text': True,
             'is_photo': False,
             'is_voice': False,

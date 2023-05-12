@@ -24,11 +24,13 @@ def main() -> None:
             engine.NOVEL: [MessageHandler(filters.Regex("^(Давай!)$"), engine.novel)],
             engine.CONTINUE: [CallbackQueryHandler(engine.game_buttons)],
             engine.INFO_BUTTONS: [CallbackQueryHandler(engine.info_buttons)],
+            engine.GLOSSARY_BUTTONS: [CallbackQueryHandler(engine.glossary_buttons)],
             engine.SAVE_FEEDBACK: [MessageHandler(filters.TEXT, engine.save_feedback)],
             engine.FEEDBACK_BUTTON: [CallbackQueryHandler(engine.feedback_button)]
         },
         fallbacks=[MessageHandler(filters.Regex("^(Інфо|Инфо)$"), engine.info),
                    MessageHandler(filters.Regex("^(Залишити відгук|Оставить отзыв)$"), engine.feedback),
+                   MessageHandler(filters.Regex("^(Глосарій|Глоссарий)$"), engine.glossary),
                    MessageHandler(filters.TEXT, engine.error)]
     )
 
