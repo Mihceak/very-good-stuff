@@ -114,8 +114,7 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
             'is_sticker': False,
             'markup': InlineKeyboardMarkup(continu3)
             }
-
-    if progress in [3, 30, 45]:
+    if progress in [3, 30, 45, 81]:
         args['is_text'] = False
         args['is_photo'] = True
         if progress == 3:
@@ -124,16 +123,20 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
             args['link'] = links.link_begin + links.room
         elif progress == 45:
             args['link'] = links.link_begin + links.city
+        elif progress == 81:
+            args['link'] = links.link_begin + links.assembly_hall
     elif progress in [29]:
         args['is_text'] = False
         args['is_voice'] = True
         if progress == 29:
             args['link'] = links.link_begin + links.alarmclock
-    elif progress in [53]:
+    elif progress in [53, 96]:
         args['is_text'] = False
         args['is_sticker'] = True
         if progress == 53:
             args['link'] = links.link_begin + links.vika
+        elif progress == 96:
+            args['link'] = links.link_begin + links.bestofurendo
     elif progress == 19:
         args['markup'] = InlineKeyboardMarkup(yesno)
     elif choice == "3" or (choice == "1" and progress == 23):
@@ -300,9 +303,13 @@ async def glossary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             'is_photo': False,
             'is_voice': False,
             'is_sticker': False,
-            'text': script.glossary[lang],
+            'text': script.glossary[lang][1],
             'markup': InlineKeyboardMarkup(back_to_game)
             }
+    if 72 <= player.get_progress() < 77:
+        args['text'] = script.glossary[lang]["72-76"]
+    if player.get_progress() >= 77:
+        args['text'] = script.glossary[lang]["77-?"]
     last_message[player.get_id()] = await send_anything(args)
     return GLOSSARY_BUTTONS
 
@@ -311,6 +318,7 @@ async def glossary_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     query = update.callback_query
     await query.answer()
     await set_player(query.message.chat_id)
+    await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
     return await novel(update, context)
 
 
