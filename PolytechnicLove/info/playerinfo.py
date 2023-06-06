@@ -31,8 +31,13 @@ class Player:
     def set_progress(self, progress):
         self.__progress = progress
 
-    def icnrementEP(self):
-        self.__endingpoints += 1
+    def increaseEP(self, character):
+        if character == "Vika":
+            self.__endingpoints += 1
+        elif character == "Nastya":
+            self.__endingpoints += 10
+        elif character == "Tanya":
+            self.__endingpoints += 100
 
     def decrementEP(self):
         self.__endingpoints -= 1

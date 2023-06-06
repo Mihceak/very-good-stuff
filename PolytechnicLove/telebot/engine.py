@@ -21,7 +21,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-NAME_ENTERING, HANDLING_NAME, CONSTRUCTION, GOOD_MORNING, CONTINUE, NOVEL, INFO_BUTTONS, GLOSSARY_BUTTONS, SAVE_FEEDBACK, FEEDBACK_BUTTON = range(10)
+NAME_ENTERING, HANDLING_NAME, CONSTRUCTION, GOOD_MORNING, CONTINUE, NOVEL, INFO_BUTTONS, GLOSSARY_BUTTONS, SAVE_FEEDBACK, FEEDBACK_BUTTON = range(
+    10)
 
 bot = Bot(bot_token)
 global player
@@ -42,7 +43,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     players[update.message.chat_id].load()
     await set_player(update.message.chat_id)
     if player.get_progress() >= 2:
-        return await novel(update, context, "continue")
+        return await novel(update, context, "-2")
     reply_keyboard = [["Українська", "Русский"]]
     await update.message.reply_text("Оберіть мову",
                                     reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,
@@ -55,7 +56,7 @@ async def enterName(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await set_player(update.message.chat_id)
     if update.message.text == "Русский":
         player.set_language(script.ru)
-    reply_keyboard = [[f"{player.get_name()}", script.user_replies[player.get_language()][0]]]
+    reply_keyboard = [[f"{player.get_name()}", script.user_replies[player.get_language()][-1]]]
     await update.message.reply_text(script.bot_messages[player.get_language()][0],
                                     reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,
                                                                      resize_keyboard=True))
@@ -65,7 +66,7 @@ async def enterName(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def handleName(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handles the name choosing"""
     await set_player(update.message.chat_id)
-    if update.message.text == script.user_replies[lang][0]:
+    if update.message.text == script.user_replies[lang][-1]:
         await update.message.reply_text(script.bot_messages[lang][1])
         return GOOD_MORNING
     else:
@@ -86,16 +87,9 @@ async def greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return NOVEL
 
 
-async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") -> int:
+async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="-2") -> int:
     """The wheel of the main story"""
-    continu3 = [[InlineKeyboardButton(script.user_replies[lang][1], callback_data="1")]]
-    yesno = [
-        [
-            InlineKeyboardButton(script.user_replies[lang][2], callback_data="2"),
-            InlineKeyboardButton(script.user_replies[lang][3], callback_data="3")
-        ]
-    ]
-    menu = [[script.user_replies[lang][i] for i in range(4, 7)]]
+    continu3 = [[InlineKeyboardButton(script.user_replies[lang][-2], callback_data="-2")]]
     progress = player.get_progress() + 1
     global last_message
     if progress > 3 and (update.message is None or update.message.text != '/start'):
@@ -105,6 +99,7 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
             None
     else:
         await set_player(update.message.chat_id)
+        menu = [[script.user_replies[lang][i] for i in range(-3, -6, -1)]]
         hoax_message = await bot.send_message(chat_id=player.get_id(), text='🕓',
                                               reply_markup=ReplyKeyboardMarkup(menu,
                                                                                resize_keyboard=True))
@@ -114,7 +109,7 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
             'is_sticker': False,
             'markup': InlineKeyboardMarkup(continu3)
             }
-    if progress in [3, 30, 45, 81]:
+    if progress in [3, 30, 45, 81, 108, 115]:
         args['is_text'] = False
         args['is_photo'] = True
         if progress == 3:
@@ -125,22 +120,80 @@ async def novel(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="1") 
             args['link'] = links.link_begin + links.city
         elif progress == 81:
             args['link'] = links.link_begin + links.assembly_hall
+        elif progress == 108:
+            args['link'] = links.link_begin + links.street
+        elif progress == 115:
+            args['link'] = links.link_begin + links.workplace
     elif progress in [29]:
         args['is_text'] = False
         args['is_voice'] = True
         if progress == 29:
             args['link'] = links.link_begin + links.alarmclock
-    elif progress in [53, 96]:
+    elif progress in [53, 96, 121, 141, 168, 170, 172]:
         args['is_text'] = False
         args['is_sticker'] = True
         if progress == 53:
             args['link'] = links.link_begin + links.vika
         elif progress == 96:
             args['link'] = links.link_begin + links.bestofurendo
+        elif progress == 121:
+            args['link'] = links.link_begin + links.nastya
+        elif progress == 141:
+            args['link'] = links.link_begin + links.tanya
+        elif progress == 168:
+            args['link'] = links.link_begin + links.vikachibi
+        elif progress == 170:
+            args['link'] = links.link_begin + links.nastyachibi
+        elif progress == 172:
+            args['link'] = links.link_begin + links.tanyachibi
     elif progress == 19:
+        yesno = [
+            [
+                InlineKeyboardButton(script.user_replies[lang][1], callback_data="1"),
+                InlineKeyboardButton(script.user_replies[lang][2], callback_data="2")
+            ]
+        ]
         args['markup'] = InlineKeyboardMarkup(yesno)
-    elif choice == "3" or (choice == "1" and progress == 23):
+    elif progress == 103:
+        saynotsay = [
+            [
+                InlineKeyboardButton(script.user_replies[lang][3], callback_data="3"),
+                InlineKeyboardButton(script.user_replies[lang][4], callback_data="4")
+            ]
+        ]
+        args['markup'] = InlineKeyboardMarkup(saynotsay)
+    elif progress == 126:
+        suresorry = [
+            [
+                InlineKeyboardButton(script.user_replies[lang][5], callback_data="5"),
+                InlineKeyboardButton(script.user_replies[lang][6], callback_data="6")
+            ]
+        ]
+        args['markup'] = InlineKeyboardMarkup(suresorry)
+    elif progress == 153:
+        freepay = [
+            [
+                InlineKeyboardButton(script.user_replies[lang][7], callback_data="7"),
+                InlineKeyboardButton(script.user_replies[lang][8], callback_data="8")
+            ]
+        ]
+        args['markup'] = InlineKeyboardMarkup(freepay)
+    elif progress == 174:
+        root = [
+                [InlineKeyboardButton(script.user_replies[lang][9], callback_data="9")],
+                [InlineKeyboardButton(script.user_replies[lang][10], callback_data="10")],
+                [InlineKeyboardButton(script.user_replies[lang][11], callback_data="9")],
+                [InlineKeyboardButton(script.user_replies[lang][12], callback_data="10")]
+        ]
+        args['markup'] = InlineKeyboardMarkup(root)
+    elif choice == "2" or (choice == "-2" and (progress == 23 or progress == 158)) or choice == "6":
         progress += 3
+    elif choice == "4" or (choice == "-2" and progress == 130):
+        progress += 2
+    elif choice == "-2" and progress == 106:
+        progress += 1
+    elif choice == "8":
+        progress += 4
     try:
         args['text'] = script.bot_messages[lang][progress].format(player.get_name())
     except(KeyError):
@@ -159,10 +212,15 @@ async def game_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     query = update.callback_query
     await query.answer()
     await set_player(query.message.chat_id)
-    if query.data == "1" or query.data == "2":
+    if query.data == "3":
+        player.increaseEP("Vika")
+    elif query.data == "5":
+        player.increaseEP("Nastya")
+    elif query.data == "7":
+        player.increaseEP("Tanya")
+    if query.data in ["-2", "1", "3", "5", "7"]:
         return await novel(update, context)
-    elif query.data == "3":
-        return await novel(update, context, "3")
+    return await novel(update, context, query.data)
 
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -220,10 +278,12 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="_") -
         await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
     except(BadRequest):
         None
-    choose_character = [[InlineKeyboardButton(script.user_replies[lang][7], callback_data="7")]]
+    progress = player.get_progress()
+
+    choose_character = [[InlineKeyboardButton(script.user_replies[lang][-6], callback_data="-6")]]
     from_char_info_table = [
-        [InlineKeyboardButton(script.user_replies[lang][8], callback_data="8")],
-        [InlineKeyboardButton(script.user_replies[lang][7], callback_data="7")]
+        [InlineKeyboardButton(script.user_replies[lang][-7], callback_data="-7")],
+        [InlineKeyboardButton(script.user_replies[lang][-6], callback_data="-6")]
     ]
     args = {'is_text': False,
             'is_photo': False,
@@ -233,15 +293,28 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE, choice="_") -
     if choice == "_":
         args['is_text'] = True
         args['text'] = script.bot_messages[lang][-1]
-        if player.get_progress() > 56:
+        if progress >= 56:
             choose_character.insert(0, [InlineKeyboardButton(script.characters[lang][0], callback_data="Vika")])
+        if progress >= 120:
+            choose_character.insert(1, [InlineKeyboardButton(script.characters[lang][1], callback_data="Nastya")])
+        if progress >= 161:
+            choose_character.insert(2, [InlineKeyboardButton(script.characters[lang][2], callback_data="Tanya")])
         args['markup'] = InlineKeyboardMarkup(choose_character)
-    elif choice == "Vika":
-        if player.get_progress() < 100:
-            args['is_sticker'] = True
-            args['text'] = script.bot_messages[lang][-2].format(*script.characters_info[lang]["Vika"]["56-?"])
-            args['link'] = links.link_begin + links.vika
-            args['markup'] = InlineKeyboardMarkup(from_char_info_table)
+    else:
+        args['is_sticker'] = True
+        args['markup'] = InlineKeyboardMarkup(from_char_info_table)
+        if choice == "Vika":
+            if 56 <= progress:
+                args['text'] = script.bot_messages[lang][-2].format(*script.characters_info[lang]["Vika"]["56-?"])
+                args['link'] = links.link_begin + links.vika
+        elif choice == "Nastya":
+            if 120 <= progress:
+                args['text'] = script.bot_messages[lang][-3].format(*script.characters_info[lang]["Nastya"]["120-?"])
+                args['link'] = links.link_begin + links.nastya
+        elif choice == "Tanya":
+            if 161 <= progress:
+                args['text'] = script.bot_messages[lang][-4].format(*script.characters_info[lang]["Tanya"]["161-?"])
+                args['link'] = links.link_begin + links.tanya
     last_message[player.get_id()] = await send_anything(args)
     return INFO_BUTTONS
 
@@ -251,20 +324,18 @@ async def info_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     query = update.callback_query
     await query.answer()
     await set_player(query.message.chat_id)
-    if query.data == "7":
+    await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
+    if query.data == "-6":
         try:
             await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id - 1)
         except(BadRequest):
             None
-        await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
         return await novel(update, context)
-    elif query.data == "Vika":
-        await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
-        return await info(update, context, "Vika")
-    elif query.data == "8":
+    elif query.data == "-7":
         await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id - 1)
-        await bot.deleteMessage(chat_id=player.get_id(), message_id=last_message[player.get_id()].message_id)
         return await info(update, context, "_")
+    else:
+        return await info(update, context, query.data)
 
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -298,7 +369,8 @@ async def glossary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await last_message[player.get_id()].edit_reply_markup(reply_markup=None)
     except(BadRequest):
         None
-    back_to_game = [[InlineKeyboardButton(script.user_replies[lang][7], callback_data="7")]]
+    progress = player.get_progress()
+    back_to_game = [[InlineKeyboardButton(script.user_replies[lang][-6], callback_data="-6")]]
     args = {'is_text': True,
             'is_photo': False,
             'is_voice': False,
@@ -306,10 +378,14 @@ async def glossary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             'text': script.glossary[lang][1],
             'markup': InlineKeyboardMarkup(back_to_game)
             }
-    if 72 <= player.get_progress() < 77:
+    if 72 <= progress < 77:
         args['text'] = script.glossary[lang]["72-76"]
-    if player.get_progress() >= 77:
-        args['text'] = script.glossary[lang]["77-?"]
+    elif 77 <= progress < 147:
+        args['text'] = script.glossary[lang]["77-146"]
+    elif 147 <= progress < 166:
+        args['text'] = script.glossary[lang]["147-165"]
+    elif 166 <= progress < 200:
+        args['text'] = script.glossary[lang]["166-?"]
     last_message[player.get_id()] = await send_anything(args)
     return GLOSSARY_BUTTONS
 
@@ -331,7 +407,7 @@ async def save_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             'is_voice': False,
             'is_sticker': False,
             'text': script.bot_messages[lang][-11],
-            'markup': InlineKeyboardMarkup([[InlineKeyboardButton(script.user_replies[lang][7], callback_data="_")]])
+            'markup': InlineKeyboardMarkup([[InlineKeyboardButton(script.user_replies[lang][-6], callback_data="_")]])
             }
     last_message[player.get_id()] = await send_anything(args)
     return FEEDBACK_BUTTON
@@ -343,4 +419,3 @@ async def feedback_button(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await query.answer()
     await set_player(query.message.chat_id)
     return await novel(update, context)
-
